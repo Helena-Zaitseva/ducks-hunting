@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#4028ED</color>
+    <color name="primary_dark">#110CC2</color>
+    <color name="primary_light">#4028ED</color>
+    <color name="accent">#fecc15</color>
+    <color name="primary_text">#212121</color>
+    <color name="expenses_item_name">#B35A6C83</color>
+    <color name="secondary_text">#757575</color>
+    <color name="divider">#D9DDDC</color>
+    <color name="colorWhite">#ffffff</color>
+    <color name="black">#FF000000</color>
+
+    <color name="red">#F44336</color>
+    <color name="color_pie4">#FF0000</color>
+    <color name="color_pie_value">#5A6C83</color>
+    <color name="background_keyboard">#EDF2EF</color>
+
+    <color name="selected_item">#00BFFF</color>
+    <color name="unselected_item">#b8dae6</color>
+
+    <color name="brown">#383135</color>
+
+    <color name="unselected_category_bg_color">#00000000</color>
+</resources>
