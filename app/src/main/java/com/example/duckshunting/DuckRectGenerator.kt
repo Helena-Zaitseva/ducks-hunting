@@ -19,19 +19,10 @@ class DuckRectGenerator(
     fun regenerateDuckRects(maxWidth: Int, maxHeight: Int) {
         duckRects.forEachIndexed { index, rect ->
             generateRandomRect(maxWidth, maxHeight, rect)
-
             val alreadyGeneratedDucks = duckRects.subList(0, index)
-//            if (isIntersectingWithPreviousRects(rect, alreadyGeneratedDucks)) {
-//                for (i in 0 until index) {
-//                    while (isIntersectingWithPreviousRects(rect, alreadyGeneratedDucks)) {
-//                        generateRandomRect(maxWidth, maxHeight, rect)
-//                    }
-//                }
-
-//            }
-
             // regenerate until does not intersect with previous ones
             while (isIntersectingWithPreviousRects(rect, alreadyGeneratedDucks)) {
+                println("generating...")
                 generateRandomRect(maxWidth, maxHeight, rect)
             }
         }

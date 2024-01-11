@@ -92,12 +92,6 @@ class CustomView @JvmOverloads constructor(
     }
 
     private fun isCrosshairOnDuck(x: Float, y: Float): Boolean {
-//        duckRectGenerator.duckRects.forEach { ducksRect ->
-//            if (ducksRect.contains(x.toInt(), y.toInt())) {
-//                return true
-//            }
-//        }
-//        return false
         return duckRectGenerator.duckRects.any { it.contains(x.toInt(), y.toInt()) }
     }
 
@@ -143,10 +137,10 @@ class CustomView @JvmOverloads constructor(
         private const val CROSSHAIR_DOT_RADIUS_DP = 6f
         private const val CROSSHAIR_HAIR_LENGTH_DP = 25f
         private const val CROSSHAIR_LINE_SIZE_DP = 2f
-        private const val DRAWABLE_DEFAULT_SIZE_FRACTION = 0.5f
+        private const val DRAWABLE_DEFAULT_SIZE_FRACTION = 0.3f
 
         // Game settings
-        private const val DUCKS_QUANTITY = 3
+        private const val DUCKS_QUANTITY = 5
         const val DUCKS_DISAPPEARING_TIME_MS = 2_000L
     }
 }
