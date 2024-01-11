@@ -87,6 +87,7 @@ class CustomView @JvmOverloads constructor(
     private fun tryToShootDuck(event: MotionEvent) {
         val isDuckHit = duckVisible && isCrosshairOnDuck(event.x, event.y)
         if (isDuckHit) {
+            duckRectGenerator.killDuck()
             Toast.makeText(context, "Duck has been hit", Toast.LENGTH_SHORT).show()
         }
     }

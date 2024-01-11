@@ -2,18 +2,19 @@ package com.example.duckshunting
 
 import android.content.Context
 import android.graphics.Rect
+import android.widget.Toast
 import androidx.annotation.FloatRange
 import androidx.core.content.ContextCompat
 import kotlin.math.min
 import kotlin.random.Random
 
 class DuckRectGenerator(
-    context: Context,
+    val context: Context,
     private val drawableDefaultSizeFraction: Float,
-    ducksQuantity: Int = 1,
+    var ducksQuantity: Int,
 ) {
 
-    val duckRects = List(ducksQuantity) { Rect() }
+    var duckRects = List(ducksQuantity) { Rect() }
     val duckDrawable = ContextCompat.getDrawable(context, R.drawable.duck)!!
 
     fun regenerateDuckRects(maxWidth: Int, maxHeight: Int) {
@@ -25,6 +26,14 @@ class DuckRectGenerator(
                 println("generating...")
                 generateRandomRect(maxWidth, maxHeight, rect)
             }
+        }
+    }
+
+    fun killDuck() {
+        val newQuantity = ducksQuantity--
+        duckRects = List(newQuantity) { Rect() }
+        if (newQuantity == 0) {
+            Toast.makeText(context, "Game Over", Toast.LENGTH_LONG).show()
         }
     }
 
