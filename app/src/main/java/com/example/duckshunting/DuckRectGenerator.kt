@@ -9,7 +9,7 @@ import kotlin.math.min
 import kotlin.random.Random
 
 class DuckRectGenerator(
-    val context: Context,
+    private val context: Context,
     private val drawableDefaultSizeFraction: Float,
     var ducksQuantity: Int,
 ) {
