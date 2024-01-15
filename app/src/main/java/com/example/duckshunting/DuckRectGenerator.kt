@@ -11,7 +11,7 @@ import kotlin.random.Random
 class DuckRectGenerator(
     private val context: Context,
     private val drawableDefaultSizeFraction: Float,
-    var ducksQuantity: Int,
+    val ducksQuantity: Int,
 ) {
 
     var duckRects = List(ducksQuantity) { Rect() }
@@ -23,18 +23,19 @@ class DuckRectGenerator(
             val alreadyGeneratedDucks = duckRects.subList(0, index)
             // regenerate until does not intersect with previous ones
             while (isIntersectingWithPreviousRects(rect, alreadyGeneratedDucks)) {
-                println("generating...")
                 generateRandomRect(maxWidth, maxHeight, rect)
             }
         }
     }
 
-    fun killDuck() {
-        val newQuantity = ducksQuantity--
-        duckRects = List(newQuantity) { Rect() }
-        if (newQuantity == 0) {
-            Toast.makeText(context, "Game Over", Toast.LENGTH_LONG).show()
-        }
+    fun killDuck(x: Float, y: Float) {
+        val index = duckRects.indexOfFirst { it.contains(x.toInt(), y.toInt()) }
+        duckRects = duckRects.toMutableList().apply { removeAt(index) }
+        if (duckRects.isEmpty()) gameOver()
+    }
+
+    private fun gameOver() {
+        Toast.makeText(context, "Game Over", Toast.LENGTH_LONG).show()
     }
 
     private fun isIntersectingWithPreviousRects(rect: Rect, previousRects: List<Rect>): Boolean =

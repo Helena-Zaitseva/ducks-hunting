@@ -37,6 +37,16 @@ class MainFragment : Fragment() {
         handler.postDelayed(duckToggleRunnable, DUCKS_DISAPPEARING_TIME_MS)
     }
 
+    override fun onResume() {
+        super.onResume()
+        customView.startAnimation()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        customView.stopAnimation()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         // Очистить все сообщения из очереди обработчика при уничтожении фрагмента
