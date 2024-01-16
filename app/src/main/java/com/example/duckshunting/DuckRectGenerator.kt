@@ -15,7 +15,10 @@ class DuckRectGenerator(
 ) {
 
     var duckRects = List(ducksQuantity) { Rect() }
+        private set
+
     val duckDrawable = ContextCompat.getDrawable(context, R.drawable.duck)!!
+    val dyingDuckDrawable = duckDrawable.constantState?.newDrawable(context.resources)?.mutate()!!
 
     fun regenerateDuckRects(maxWidth: Int, maxHeight: Int) {
         duckRects.forEachIndexed { index, rect ->
@@ -28,11 +31,15 @@ class DuckRectGenerator(
         }
     }
 
-    fun killDuck(x: Float, y: Float) {
-        val index = duckRects.indexOfFirst { it.contains(x.toInt(), y.toInt()) }
-        duckRects = duckRects.toMutableList().apply { removeAt(index) }
+    fun killDuck(duckIndex: Int) {
+        duckRects = duckRects.toMutableList().apply {
+            val rect = removeAt(duckIndex)
+            dyingDuckDrawable.bounds = rect
+        }
         if (duckRects.isEmpty()) gameOver()
     }
+    fun indexOfDuckUnderCrosshairOrNull(x: Float, y: Float): Int? =
+        duckRects.indexOfFirst { it.contains(x.toInt(), y.toInt()) }.takeIf { it >= 0 }
 
     private fun gameOver() {
         Toast.makeText(context, "Game Over", Toast.LENGTH_LONG).show()

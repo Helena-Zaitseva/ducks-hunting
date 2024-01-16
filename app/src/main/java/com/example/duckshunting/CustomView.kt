@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
 import android.widget.Toast
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.withSave
 
@@ -66,10 +67,11 @@ class CustomView @JvmOverloads constructor(
     private var circleXFraction = 0.5f
     private var circleYFraction = 0.5f
 
-    private var valueAnimator: ValueAnimator? = null
+    private var animatorDuckAppearing: ValueAnimator? = null
+    private var animatorDuckDying: ValueAnimator? = null
 
     fun startAnimation() {
-        valueAnimator = ValueAnimator.ofInt(0, 255).apply {
+        animatorDuckAppearing = ValueAnimator.ofInt(0, 255).apply {
             duration = ANIM_DUCK_APPEARING_DURATION_MS
             interpolator = AccelerateInterpolator()
             addUpdateListener {
@@ -82,7 +84,25 @@ class CustomView @JvmOverloads constructor(
     }
 
     fun stopAnimation() {
-        valueAnimator?.cancel()
+        animatorDuckAppearing?.cancel()
+        animatorDuckDying?.cancel()
+    }
+
+    private fun startDuckKillingAnimation() {
+        val startingAlpha = duckRectGenerator.duckDrawable.alpha
+        animatorDuckDying = ValueAnimator.ofInt(startingAlpha, 0).apply {
+            duration = ANIM_DUCK_KILLING_DURATION_MS
+            interpolator = AccelerateInterpolator()
+            addUpdateListener {
+                val fraction = it.animatedValue as Int
+                duckRectGenerator.dyingDuckDrawable.alpha = fraction
+                invalidate()
+            }
+            doOnEnd {
+                duckRectGenerator.dyingDuckDrawable.bounds.setEmpty()
+            }
+            start()
+        }
     }
 
     fun showDucks() {
@@ -99,20 +119,14 @@ class CustomView @JvmOverloads constructor(
         when (event.action) {
             MotionEvent.ACTION_UP -> tryToShootDuck(event)
         }
-
         return circleDragDelegate.handleTouchEvent(event)
     }
 
     private fun tryToShootDuck(event: MotionEvent) {
-        val isDuckHit = isCrosshairOnDuck(event.x, event.y)
-        if (isDuckHit) {
-            duckRectGenerator.killDuck(event.x,  event.y)
-            Toast.makeText(context, "Duck has been hit", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun isCrosshairOnDuck(x: Float, y: Float): Boolean {
-        return duckRectGenerator.duckRects.any { it.contains(x.toInt(), y.toInt()) }
+        val index = duckRectGenerator.indexOfDuckUnderCrosshairOrNull(event.x, event.y) ?: return
+        duckRectGenerator.killDuck(index)
+        startDuckKillingAnimation()
+        Toast.makeText(context, "Duck has been hit", Toast.LENGTH_SHORT).show()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -129,6 +143,7 @@ class CustomView @JvmOverloads constructor(
         super.onDraw(canvas)
         //Duck
         duckRectGenerator.run {
+            dyingDuckDrawable.draw(canvas)
             duckRects.forEach {
                 duckDrawable.bounds = it
                 duckDrawable.draw(canvas)
@@ -157,9 +172,10 @@ class CustomView @JvmOverloads constructor(
         private const val CROSSHAIR_LINE_SIZE_DP = 2f
         private const val DRAWABLE_DEFAULT_SIZE_FRACTION = 0.3f
         private const val ANIM_DUCK_APPEARING_DURATION_MS = 300L
+        private const val ANIM_DUCK_KILLING_DURATION_MS = 300L
 
         // Game settings
-        private const val DUCKS_QUANTITY = 5
+        const val DUCKS_QUANTITY = 5
         const val DUCKS_DISAPPEARING_TIME_MS = 2_000L
     }
 }
