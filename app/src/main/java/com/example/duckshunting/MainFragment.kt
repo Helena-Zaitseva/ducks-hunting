@@ -16,9 +16,9 @@ class MainFragment : Fragment() {
 
     private val duckToggleRunnable = object : Runnable {
         override fun run() {
-            // Метод для переключения видимости утки
+            //ducks are on the screen
             customView.showDucks()
-            // Запуск того же Runnable через заданный интервал времени
+            // Running the same Runnable after a specified time interval
             handler.postDelayed(this, DUCKS_DISAPPEARING_TIME_MS)
         }
     }
@@ -49,7 +49,7 @@ class MainFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Очистить все сообщения из очереди обработчика при уничтожении фрагмента
+        //Clear all messages from the handler queue when a fragment is destroyed
         handler.removeCallbacksAndMessages(null)
     }
 }

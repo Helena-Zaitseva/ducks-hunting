@@ -11,7 +11,10 @@ import kotlin.random.Random
 class DuckRectGenerator(
     private val context: Context,
     private val drawableDefaultSizeFraction: Float,
+    private val horizontalBorders: () -> ClosedFloatingPointRange<Float>,
+    private val verticalBorders: () -> ClosedFloatingPointRange<Float>,
     val ducksQuantity: Int,
+
 ) {
 
     var duckRects = List(ducksQuantity) { Rect() }
@@ -36,13 +39,14 @@ class DuckRectGenerator(
             val rect = removeAt(duckIndex)
             dyingDuckDrawable.bounds = rect
         }
-        if (duckRects.isEmpty()) gameOver()
+        if (duckRects.isEmpty()) gameCompleted()
     }
+
     fun indexOfDuckUnderCrosshairOrNull(x: Float, y: Float): Int? =
         duckRects.indexOfFirst { it.contains(x.toInt(), y.toInt()) }.takeIf { it >= 0 }
 
-    private fun gameOver() {
-        Toast.makeText(context, "Game Over", Toast.LENGTH_LONG).show()
+    private fun gameCompleted() {
+        Toast.makeText(context, "You Won!", Toast.LENGTH_LONG).show()
     }
 
     private fun isIntersectingWithPreviousRects(rect: Rect, previousRects: List<Rect>): Boolean =
@@ -58,8 +62,13 @@ class DuckRectGenerator(
         @FloatRange(from = 0.0, to = 1.0)
         val randomYFraction = generateRandomCoordinate()
 
-        val duckX: Float = maxWidth.minus(duckWidth) * randomXFraction
-        val duckY: Float = maxHeight.minus(duckHeight) * randomYFraction
+        val duckX: Float = maxWidth
+            .minus(duckWidth) * randomXFraction
+            .coerceIn(horizontalBorders())
+        val duckY: Float = maxHeight
+            .minus(duckHeight)
+            .times(randomYFraction)
+            .coerceIn(verticalBorders())
 
         val left = 0f + layoutPadding + duckX
         val top = 0f + layoutPadding + duckY
