@@ -25,7 +25,6 @@ class MainFragment : Fragment(), ShowDialogListener, SoundListener {
     private lateinit var customView: CustomView
     private lateinit var confetti: KonfettiView
     private val handler = Handler(Looper.getMainLooper())
-    private lateinit var mediaPlayer: MediaPlayer
 
     private val duckToggleRunnable = object : Runnable {
         override fun run() {
@@ -39,7 +38,7 @@ class MainFragment : Fragment(), ShowDialogListener, SoundListener {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         layoutInflater.inflate(R.layout.main_fragment, container, false).apply {
             customView = findViewById(R.id.customView)
-            confetti = findViewById(R.id.konfettiView)
+            confetti = findViewById(R.id.confettiView)
             customView.showDialogListener = this@MainFragment
             customView.soundListener = this@MainFragment
         }
@@ -105,20 +104,26 @@ class MainFragment : Fragment(), ShowDialogListener, SoundListener {
             damping = 0.9f,
             spread = 360,
             colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
-            emitter = Emitter(duration = 1000, TimeUnit.MILLISECONDS).max(1000),
+            emitter = Emitter(duration = 300, TimeUnit.MILLISECONDS).max(300),
             position = Position.Relative(0.5, 0.3)
         )
         confetti.start(party)
     }
 
     override fun playShotSound() {
-        mediaPlayer = MediaPlayer.create(requireContext(), R.raw.shot_sound)
-        mediaPlayer.start()
+        val shotMediaPlayer = MediaPlayer.create(requireContext(), R.raw.shot_sound)
+        shotMediaPlayer.setOnCompletionListener { mp ->
+            mp.release()
+        }
+        shotMediaPlayer.start()
     }
 
     override fun playDuckSound() {
-        mediaPlayer = MediaPlayer.create(requireContext(), R.raw.duck_quacking)
-        mediaPlayer.start()
+        val duckMediaPlayer = MediaPlayer.create(requireContext(), R.raw.duck_quacking)
+        duckMediaPlayer.setOnCompletionListener { mp ->
+            mp.release()
+        }
+        duckMediaPlayer.start()
     }
 
     override fun vibration() {

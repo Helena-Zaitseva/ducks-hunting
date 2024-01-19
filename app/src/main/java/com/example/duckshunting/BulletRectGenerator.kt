@@ -6,7 +6,7 @@ import androidx.core.content.ContextCompat
 import kotlin.math.min
 
 class BulletRectGenerator(
-    private val context: Context,
+    context: Context,
     private val drawableDefaultSize: Float,
     var bulletQuantity: Int,
 ) {

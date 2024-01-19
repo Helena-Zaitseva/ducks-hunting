@@ -61,7 +61,7 @@ class CustomView @JvmOverloads constructor(
     private val horDuckBorders
         get() = (0f)..(width.toFloat())
     private val vertDuckBorders
-        get() = (bulletRectGenerator.drawableHeight * 2)..(height.toFloat())
+        get() = (bulletRectGenerator.drawableHeight)..(height.toFloat() - bulletRectGenerator.drawableHeight)
 
     private val crosshairCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = dpToPx(CROSSHAIR_LINE_SIZE_DP)
@@ -171,7 +171,6 @@ class CustomView @JvmOverloads constructor(
         startDuckKillingAnimation()
         soundListener?.playDuckSound()
         soundListener?.vibration()
-        //Toast.makeText(context, "Duck has been hit", Toast.LENGTH_SHORT).show()
     }
 
     fun reset() {
