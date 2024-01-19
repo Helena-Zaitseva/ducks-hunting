@@ -1,6 +1,7 @@
 package com.example.duckshunting
 
 import android.animation.ValueAnimator
+import android.animation.ValueAnimator.*
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
@@ -8,7 +9,6 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
-import android.widget.Toast
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.withSave
@@ -20,13 +20,17 @@ class CustomView @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : CustomViewScaffold(context, attrs, defStyleAttr, defStyleRes) {
 
-    private val bulletRectGenerator = BulletRectGenerator(
+    var showDialogListener: ShowDialogListener? = null
+
+    var soundListener: SoundListener? = null
+
+    private var bulletRectGenerator = BulletRectGenerator(
         context = this.context,
         drawableDefaultSize = BULLET_DRAWABLE_DEFAULT_SIZE_FRACTION,
         bulletQuantity = BULLET_QUANTITY
     )
 
-    private val duckRectGenerator = DuckRectGenerator(
+    private var duckRectGenerator = DuckRectGenerator(
         context = this.context,
         drawableDefaultSizeFraction = DRAWABLE_DEFAULT_SIZE_FRACTION,
         horizontalBorders = { horDuckBorders },
@@ -57,7 +61,7 @@ class CustomView @JvmOverloads constructor(
     private val horDuckBorders
         get() = (0f)..(width.toFloat())
     private val vertDuckBorders
-        get() = (bulletRectGenerator.drawableHeight)..(height.toFloat())
+        get() = (bulletRectGenerator.drawableHeight * 2)..(height.toFloat())
 
     private val crosshairCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = dpToPx(CROSSHAIR_LINE_SIZE_DP)
@@ -69,7 +73,7 @@ class CustomView @JvmOverloads constructor(
         style = Paint.Style.FILL
     }
 
-    private val crosshairCircleRadius = dpToPx(CROSSHAIR_CIRCLE_RADIUS_DP)
+    private var crosshairCircleRadius = dpToPx(CROSSHAIR_CIRCLE_RADIUS_DP)
     private val crosshairDotRadius = dpToPx(CROSSHAIR_DOT_RADIUS_DP)
     private val crosshairHairLength = dpToPx(CROSSHAIR_HAIR_LENGTH_DP)
 
@@ -81,9 +85,10 @@ class CustomView @JvmOverloads constructor(
 
     private var animatorDuckAppearing: ValueAnimator? = null
     private var animatorDuckDying: ValueAnimator? = null
+    private var crosshairValueAnimator: ValueAnimator? = null
 
     fun startAnimation() {
-        animatorDuckAppearing = ValueAnimator.ofInt(0, 255).apply {
+        animatorDuckAppearing = ofInt(0, 255).apply {
             duration = ANIM_DUCK_APPEARING_DURATION_MS
             interpolator = AccelerateInterpolator()
             addUpdateListener {
@@ -98,11 +103,12 @@ class CustomView @JvmOverloads constructor(
     fun stopAnimation() {
         animatorDuckAppearing?.cancel()
         animatorDuckDying?.cancel()
+        crosshairValueAnimator?.cancel()
     }
 
     private fun startDuckKillingAnimation() {
         val startingAlpha = duckRectGenerator.duckDrawable.alpha
-        animatorDuckDying = ValueAnimator.ofInt(startingAlpha, 0).apply {
+        animatorDuckDying = ofInt(startingAlpha, 0).apply {
             duration = ANIM_DUCK_KILLING_DURATION_MS
             interpolator = AccelerateInterpolator()
             addUpdateListener {
@@ -112,6 +118,20 @@ class CustomView @JvmOverloads constructor(
             }
             doOnEnd {
                 duckRectGenerator.dyingDuckDrawable.bounds.setEmpty()
+            }
+            start()
+        }
+    }
+
+    private fun crosshairAnimation() {
+        crosshairValueAnimator = ofFloat(130f, 160f).apply {
+            duration = ANIM_CROSSHAIR_DURATION_MS
+            interpolator = AccelerateInterpolator()
+            repeatCount = RESTART
+            repeatMode = REVERSE
+            addUpdateListener {
+                crosshairCircleRadius = it.animatedValue as Float
+                invalidate()
             }
             start()
         }
@@ -130,7 +150,16 @@ class CustomView @JvmOverloads constructor(
         }
         when (event.action) {
             MotionEvent.ACTION_UP -> {
+                crosshairAnimation()
+                soundListener?.playShotSound()
+                bulletRectGenerator.removeBullet()
                 tryToShootDuck(event)
+                if (bulletRectGenerator.bulletRects.isEmpty() && duckRectGenerator.duckRects.isNotEmpty()) {
+                    showDialogListener?.showRetryGameDialog()
+                }
+                if (duckRectGenerator.duckRects.isEmpty()) {
+                    showDialogListener?.showWinDialog()
+                }
             }
         }
         return circleDragDelegate.handleTouchEvent(event)
@@ -140,7 +169,26 @@ class CustomView @JvmOverloads constructor(
         val index = duckRectGenerator.indexOfDuckUnderCrosshairOrNull(event.x, event.y) ?: return
         duckRectGenerator.killDuck(index)
         startDuckKillingAnimation()
-        Toast.makeText(context, "Duck has been hit", Toast.LENGTH_SHORT).show()
+        soundListener?.playDuckSound()
+        soundListener?.vibration()
+        //Toast.makeText(context, "Duck has been hit", Toast.LENGTH_SHORT).show()
+    }
+
+    fun reset() {
+        duckRectGenerator = DuckRectGenerator(
+            context = this.context,
+            drawableDefaultSizeFraction = DRAWABLE_DEFAULT_SIZE_FRACTION,
+            horizontalBorders = { horDuckBorders },
+            verticalBorders = { vertDuckBorders },
+            ducksQuantity = DUCKS_QUANTITY,
+        )
+        showDucks()
+        bulletRectGenerator = BulletRectGenerator(
+            context = this.context,
+            drawableDefaultSize = BULLET_DRAWABLE_DEFAULT_SIZE_FRACTION,
+            bulletQuantity = BULLET_QUANTITY
+        )
+        bulletRectGenerator.generateBulletRect(width, height)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -152,7 +200,7 @@ class CustomView @JvmOverloads constructor(
         circleX = w * circleXFraction.coerceIn(0f, 1f)
         circleY = h * circleYFraction.coerceIn(0f, 1f)
 
-
+        //Bullets
         bulletRectGenerator.generateBulletRect(w, h)
     }
 
@@ -180,6 +228,7 @@ class CustomView @JvmOverloads constructor(
             }
         }
 
+        //Bullets
         bulletRectGenerator.run {
             bulletRects.forEach {
                 bulletDrawable.bounds = it
@@ -190,18 +239,19 @@ class CustomView @JvmOverloads constructor(
 
     companion object {
 
-        private const val CROSSHAIR_CIRCLE_RADIUS_DP = 60f
+        private const val CROSSHAIR_CIRCLE_RADIUS_DP = 55f
         private const val CROSSHAIR_DOT_RADIUS_DP = 6f
-        private const val CROSSHAIR_HAIR_LENGTH_DP = 25f
+        private const val CROSSHAIR_HAIR_LENGTH_DP = 22f
         private const val CROSSHAIR_LINE_SIZE_DP = 2f
         private const val DRAWABLE_DEFAULT_SIZE_FRACTION = 0.3f
-        private const val BULLET_DRAWABLE_DEFAULT_SIZE_FRACTION = 0.4f
+        private const val BULLET_DRAWABLE_DEFAULT_SIZE_FRACTION = 0.3f
         private const val ANIM_DUCK_APPEARING_DURATION_MS = 300L
         private const val ANIM_DUCK_KILLING_DURATION_MS = 300L
+        private const val ANIM_CROSSHAIR_DURATION_MS = 200L
 
         // Game settings
         const val DUCKS_QUANTITY = 5
         const val BULLET_QUANTITY = 5
-        const val DUCKS_DISAPPEARING_TIME_MS = 2_000L
+        const val DUCKS_DISAPPEARING_TIME_MS = 1_500L
     }
 }

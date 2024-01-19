@@ -39,15 +39,10 @@ class DuckRectGenerator(
             val rect = removeAt(duckIndex)
             dyingDuckDrawable.bounds = rect
         }
-        if (duckRects.isEmpty()) gameCompleted()
     }
 
     fun indexOfDuckUnderCrosshairOrNull(x: Float, y: Float): Int? =
         duckRects.indexOfFirst { it.contains(x.toInt(), y.toInt()) }.takeIf { it >= 0 }
-
-    private fun gameCompleted() {
-        Toast.makeText(context, "You Won!", Toast.LENGTH_LONG).show()
-    }
 
     private fun isIntersectingWithPreviousRects(rect: Rect, previousRects: List<Rect>): Boolean =
         previousRects.any { Rect.intersects(rect, it) }
