@@ -77,8 +77,10 @@ class MainFragment : Fragment(), ShowDialogListener, SoundListener {
             setIcon(R.drawable.duck_game_over)
             setPositiveButton("RETRY") { _, _ ->
                 customView.reset()
+                startDuckDisplay()
             }
         }
+        handler.removeCallbacksAndMessages(null)
         builder.show()
     }
 
@@ -91,8 +93,10 @@ class MainFragment : Fragment(), ShowDialogListener, SoundListener {
             setIcon(R.drawable.duck_win)
             setPositiveButton("START") { _, _ ->
                 customView.reset()
+                startDuckDisplay()
             }
         }
+        handler.removeCallbacksAndMessages(null)
         builder.show()
         showConfetti()
     }
